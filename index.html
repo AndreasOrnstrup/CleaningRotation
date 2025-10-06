@@ -37,71 +37,63 @@
 
     </div>
 
-    <script>
-      // ...
-      // --- Section 1: Define our data ---
-// We use arrays to store our people and tasks.
-// Storing tasks as objects is great because it keeps the name and notes together.
-const people = ['A', 'L', 'E'];
-const tasks = [
-    { 
-        name: 'Floors', 
-        notes: 'Vacuum, floor cleaning in whole apartment' 
-    },
-    { 
-        name: 'Bathroom', 
-        notes: 'Clean drain, mirror + shower' 
-    },
-    { 
-        name: 'Livingroom + Kitchen', 
-        notes: 'Clean surfaces, clean kitchen and general' 
+<script>
+    // --- Section 1: Define our data (Unchanged) ---
+    const people = ['A', 'L', 'E'];
+    const tasks = [
+        { 
+            name: 'Floors', 
+            notes: 'Vacuum, floor cleaning in whole apartment' 
+        },
+        { 
+            name: 'Bathroom', 
+            notes: 'Clean drain, mirror + shower' 
+        },
+        { 
+            name: 'Livingroom + Kitchen', 
+            notes: 'Clean surfaces, clean kitchen and general' 
+        }
+    ];
+
+    // --- Section 2: The Core Logic (THE FIX IS HERE) ---
+    
+    // New helper function to get the ISO week number for any date.
+    // This is a standard algorithm you can find online.
+    function getISOWeek(date) {
+        let d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        // Set to nearest Thursday: current date + 4 - current day number
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        // Get first day of year
+        let yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        // Calculate full weeks to nearest Thursday
+        let weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
     }
-];
 
-// --- Section 2: The Core Logic ---
-// This function calculates the number of weeks that have passed since our start date.
-function getWeekNumber(startDate) {
-    const today = new Date();
-    const start = new Date(startDate);
-    
-    // Calculate the difference in milliseconds
-    const diff = today - start;
-    
-    // Convert milliseconds to the number of weeks and round up
-    const weekNumber = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
-    return weekNumber;
-}
+    // --- Section 3: Assign and Display (Updated) ---
+    function updateRota() {
+        const today = new Date();
+        // The key change is here! We now get the current week number.
+        // Today, October 6, 2025, is in week 41.
+        const week = getISOWeek(today);
 
-// --- Section 3: Assign and Display ---
-function updateRota() {
-    // Set the official start date of the rota.
-    const rotaStartDate = '2025-10-01'; // October 1st, 2025
-    const week = getWeekNumber(rotaStartDate);
+        people.forEach((person, index) => {
+            // The rotation logic remains the same, but now it's based on the correct week number.
+            const taskIndex = (week + index) % tasks.length;
+            const assignedTask = tasks[taskIndex];
+            
+            const taskElement = document.getElementById(`task-${person}`);
+            const notesElement = document.getElementById(`notes-${person}`);
+            
+            taskElement.textContent = assignedTask.name;
+            notesElement.textContent = assignedTask.notes;
+        });
+    }
 
-    // This is the key to the rotation! The Modulo Operator (%)
-    // 'week % 3' will always give a result of 0, 1, or 2.
-    // As the week number increases, the result cycles through 0, 1, 2, 0, 1, 2...
-    
-    people.forEach((person, index) => {
-        // We use the current person's index to create an offset.
-        const taskIndex = (week + index) % tasks.length;
-        
-        const assignedTask = tasks[taskIndex];
-        
-        // Find the correct HTML elements using their IDs.
-        const taskElement = document.getElementById(`task-${person}`);
-        const notesElement = document.getElementById(`notes-${person}`);
-        
-        // Update the content on the webpage. This is DOM manipulation.
-        taskElement.textContent = assignedTask.name;
-        notesElement.textContent = assignedTask.notes;
-    });
-}
-
-// --- Section 4: Run the code ---
-// Call the function to update the rota when the page loads.
-updateRota();
-    </script>
+    // --- Section 4: Run the code (Unchanged) ---
+    updateRota();
+</script>
 
 </body>
 </html>
+
